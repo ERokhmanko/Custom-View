@@ -2,13 +2,11 @@ package ru.netology.customview.ui
 
 import android.content.AttributionSource
 import android.content.Context
-import android.graphics.Canvas
-import android.graphics.Paint
-import android.graphics.PointF
-import android.graphics.RectF
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
+import androidx.core.graphics.toXfermode
 import ru.netology.customview.R
 import ru.netology.customview.utils.AndroidUtils
 import kotlin.math.min
@@ -34,6 +32,7 @@ class StatsView @JvmOverloads constructor(
         strokeWidth = AndroidUtils.dp(context, 5).toFloat()
     }
 
+
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
         strokeWidth = AndroidUtils.dp(context, 24).toFloat()
@@ -43,7 +42,6 @@ class StatsView @JvmOverloads constructor(
     private var center = PointF()
     private var radius = 0F
     private var oval = RectF()
-
     private var colors = emptyList<Int>()
 
     init {
@@ -79,21 +77,28 @@ class StatsView @JvmOverloads constructor(
 
         var startAngle = -90F
         data.forEachIndexed { index, datum ->
-            val angle = datum * 360
+            val angle = (datum / (data.maxOrNull()?.times(data.count())!!)) * 360
             paint.color = colors.getOrElse(index) { generateRandomColor() }
             canvas?.drawArc(oval, startAngle, angle, false, paint)
             startAngle += angle
         }
 
+        val text = (data.sum() / (data.maxOrNull()?.times(data.count())!!)) * 100
         canvas?.drawText(
-            "%.2f%%".format(data.sum() * 100F),
+            "%.2f%%".format(text),
             center.x,
             center.y + textPaint.textSize / 4F,
             textPaint
         )
 
-//        canvas?.drawCircle(center.x, center.y, radius, paint)
+        if (text == 100F) {
+            paint.color = colors[0]
+            canvas?.drawArc(oval, startAngle, 1F, false, paint)
+        }
+
     }
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
+
+
 }
