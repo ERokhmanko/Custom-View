@@ -3,6 +3,7 @@ package ru.netology.customview.ui
 import android.content.AttributionSource
 import android.content.Context
 import android.graphics.*
+import android.graphics.Color.parseColor
 import android.util.AttributeSet
 import android.view.View
 import androidx.core.content.withStyledAttributes
@@ -32,6 +33,15 @@ class StatsView @JvmOverloads constructor(
         strokeWidth = AndroidUtils.dp(context, 5).toFloat()
     }
 
+    private val paint2 = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+        strokeJoin = Paint.Join.ROUND
+        strokeWidth = AndroidUtils.dp(context, 20).toFloat()
+        color = 0xFFDEDEDE.toInt()
+        alpha = 127
+    }
+
 
     private val textPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         style = Paint.Style.FILL
@@ -43,6 +53,7 @@ class StatsView @JvmOverloads constructor(
     private var radius = 0F
     private var oval = RectF()
     private var colors = emptyList<Int>()
+    private var degree = 360F
 
     init {
         context.withStyledAttributes(attributeSet, R.styleable.StatsView) {
@@ -76,8 +87,10 @@ class StatsView @JvmOverloads constructor(
         }
 
         var startAngle = -90F
+        canvas?.drawArc(oval, startAngle, 360F, false, paint2)
+
         data.forEachIndexed { index, datum ->
-            val angle = (datum / (data.maxOrNull()?.times(data.count())!!)) * 360
+            val angle = (datum / (data.maxOrNull()?.times(data.count())!!)) * degree
             paint.color = colors.getOrElse(index) { generateRandomColor() }
             canvas?.drawArc(oval, startAngle, angle, false, paint)
             startAngle += angle
@@ -91,11 +104,19 @@ class StatsView @JvmOverloads constructor(
             textPaint
         )
 
+            //Второй варинт решения 3 задачи без изначального отрисовывания круга
+//        if (text != 100F) {
+//            val angle = degree - (data.sum() / (data.maxOrNull()?.times(data.count())!!)) * degree
+//            canvas?.drawArc(oval, startAngle, angle, false, paint2)
+//            startAngle += angle
+//        }
+//        paint.color = colors[0]
+//        canvas?.drawArc(oval, startAngle, 1F, false, paint)
+
         if (text == 100F) {
             paint.color = colors[0]
             canvas?.drawArc(oval, startAngle, 1F, false, paint)
         }
-
     }
 
     private fun generateRandomColor() = Random.nextInt(0xFF000000.toInt(), 0xFFFFFFFF.toInt())
