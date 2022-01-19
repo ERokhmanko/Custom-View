@@ -2,16 +2,12 @@ package ru.netology.customview.ui
 
 import android.animation.Animator
 import android.animation.ValueAnimator
-import android.content.AttributionSource
 import android.content.Context
 import android.graphics.*
-import android.graphics.Color.parseColor
 import android.util.AttributeSet
 import android.view.View
-import android.view.animation.BounceInterpolator
 import android.view.animation.LinearInterpolator
 import androidx.core.content.withStyledAttributes
-import androidx.core.graphics.toXfermode
 import ru.netology.customview.R
 import ru.netology.customview.utils.AndroidUtils
 import kotlin.math.min
@@ -93,19 +89,7 @@ class StatsView @JvmOverloads constructor(
         }
 
         var startAngle = -90F
-        val rotation = degree * progress
-
-        canvas?.drawArc(oval, startAngle, degree, false, paint2)
-
-        data.forEachIndexed { index, datum ->
-            val angle = (datum / (data.maxOrNull()?.times(data.count())!!)) * degree
-            paint.color = colors.getOrElse(index) { generateRandomColor() }
-            canvas?.drawArc(
-                oval, startAngle + rotation, angle * progress, false, paint
-            )
-            startAngle += angle
-        }
-
+        val maxAngle = degree * progress + startAngle
 
         val text = (data.sum() / (data.maxOrNull()?.times(data.count())!!)) * 100
         canvas?.drawText(
@@ -115,6 +99,21 @@ class StatsView @JvmOverloads constructor(
             textPaint
         )
 
+        canvas?.drawArc(oval, startAngle, degree, false, paint2)
+
+        data.forEachIndexed { index, datum ->
+            val angle = (datum / (data.maxOrNull()?.times(data.count())!!)) * degree
+            val rotationAngle = min(angle, maxAngle - startAngle)
+            println("ellina $rotationAngle")
+            paint.color = colors.getOrElse(index) { generateRandomColor() }
+            canvas?.drawArc(
+                oval, startAngle, rotationAngle, false, paint
+            )
+            startAngle += angle
+
+            if (startAngle > maxAngle) return@onDraw
+
+        }
 
         if (text == 100F) {
             paint.color = colors[0]
@@ -140,6 +139,4 @@ class StatsView @JvmOverloads constructor(
             start()
         }
     }
-
-
 }
